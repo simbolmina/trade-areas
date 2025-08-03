@@ -1,3 +1,13 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:1cf85923551d49e692d4da40a62e7176842262bb1a484daf0aebeb45ad17b6bc
-size 380
+{
+    "id": "c660833d-77f0-4bfa-b8f9-4ac38f43ef6a",
+    "name": "Starbucks",
+    "street_address": "7055 Austin Bluffs Pkwy",
+    "city": "Colorado Springs",
+    "state": "CO",
+    "logo": null,
+    "longitude": -104.73874,
+    "latitude": 38.932625,
+    "industry": "Snack and Nonalcoholic Beverage Bars",
+    "isTradeAreaAvailable": true,
+    "isHomeZipcodesAvailable": true
+  }
