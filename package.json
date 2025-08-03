@@ -1,3 +1,30 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:beb86f4f10b0f3f26a6511457308c63e1a9e07ea63b2879c6c84eccaf0defbbd
-size 800
+{
+  "name": "trade-areas",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^5.18.0",
+    "@mui/material": "^5.18.0",
+    "deck.gl": "^8.9.36",
+    "mapbox-gl": "^3.3.0",
+    "next": "^14.2.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-map-gl": "^7.1.0"
+  },
+  "devDependencies": {
+    "@types/mapbox-gl": "^2.7.19",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "typescript": "^5"
+  }
+}

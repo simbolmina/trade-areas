@@ -5,7 +5,7 @@ import { Box, Typography, Alert } from '@mui/material';
 import DeckGL from '@deck.gl/react';
 import { ScatterplotLayer, PolygonLayer } from '@deck.gl/layers';
 import { MapView } from '@deck.gl/core';
-import { Map as ReactMapGL } from 'react-map-gl/mapbox';
+import { Map as ReactMapGL } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { MapState, FilterState, Place, TradeArea, HomeZipcodes } from '@/types';
 import { MAP_CONFIG } from '@/utils/mapConfig';
@@ -290,7 +290,7 @@ export default function Map({
           : (MAP_CONFIG.PLACE_COLORS.other as [number, number, number, number]);
       },
       getLineColor: [255, 255, 255, 255],
-      onHover: (info) => {
+      onHover: (info: any) => {
         if (info.object && info.x !== undefined && info.y !== undefined) {
           const cluster = info.object as ClusterPoint;
           if (!cluster.isCluster && cluster.places[0]) {
@@ -302,7 +302,7 @@ export default function Map({
           hideTooltipWithDelay();
         }
       },
-      onClick: (info) => {
+      onClick: (info: any) => {
         const cluster = info.object as ClusterPoint;
         if (cluster && !cluster.isCluster && cluster.places[0]) {
           onMapStateChange({ selectedPlace: cluster.places[0] });
@@ -388,7 +388,7 @@ export default function Map({
         filled: true,
         wireframe: false,
         lineWidthMinPixels: 1,
-        getPolygon: (zipcode) => {
+        getPolygon: (zipcode: any) => {
           if (
             !zipcode.polygon ||
             !zipcode.polygon.coordinates ||
@@ -398,7 +398,7 @@ export default function Map({
           }
           return zipcode.polygon.coordinates[0];
         },
-        getFillColor: (zipcode) => {
+        getFillColor: (zipcode: any) => {
           const color = getLocationColor(zipcode.percentage, percentileGroups);
           return [color[0], color[1], color[2], 100]; // More transparent
         },

@@ -63,7 +63,7 @@ export const NotificationProvider = ({
       autoHideDuration,
     };
 
-    setPendingNotifications((prev) => new Set([...prev, message]));
+    setPendingNotifications((prev) => new Set([...Array.from(prev), message]));
 
     setNotifications((prev) => [...prev, notification]);
     setNextId((prev) => prev + 1);
