@@ -338,12 +338,67 @@ export default function Map({
     }
   }, [filterState.selectedTradeAreas, allLoadedTradeAreas]);
 
+  // Separate layer for "My Place" to ensure it's always visible and prominent
+  const myPlaceLayer = useMemo(() => {
+    if (!filterState.showPlaces) return null;
+
+    // Find "My Place" in the filtered places
+    const myPlace = filteredPlaces.find((place) => place.id === realMyPlace.id);
+    if (!myPlace) return null;
+
+    return new ScatterplotLayer({
+      id: 'my-place-layer',
+      data: [myPlace],
+      pickable: true,
+      opacity: 1.0,
+      stroked: true,
+      filled: true,
+      radiusScale: 1,
+      radiusMinPixels: 20,
+      radiusMaxPixels: 40,
+      lineWidthMinPixels: 3,
+      getPosition: (place: Place) => [place.longitude, place.latitude],
+      getRadius: () => 30, // Always large and visible
+      getFillColor: () =>
+        MAP_CONFIG.PLACE_COLORS.myPlace as [number, number, number, number],
+      getLineColor: [255, 255, 255, 255], // White border
+      getLineWidth: 3,
+      onHover: (info: any) => {
+        if (info.object && info.x !== undefined && info.y !== undefined) {
+          showTooltip(info.object, info.x, info.y);
+        } else {
+          hideTooltipWithDelay();
+        }
+      },
+      onClick: (info: any) => {
+        if (info.object) {
+          onMapStateChange({ selectedPlace: info.object });
+        }
+      },
+    });
+  }, [
+    filterState.showPlaces,
+    filteredPlaces,
+    onMapStateChange,
+    showTooltip,
+    hideTooltipWithDelay,
+  ]);
+
+  // Regular places layer (excluding "My Place")
   const placesLayer = useMemo(() => {
     if (!filterState.showPlaces || clusteredPlaces.length === 0) return null;
 
+    // Filter out "My Place" from clustered places since it has its own layer
+    const otherPlaces = clusteredPlaces.filter((cluster) => {
+      if (cluster.isCluster) return true;
+      return cluster.places[0]?.id !== realMyPlace.id;
+    });
+
+    if (otherPlaces.length === 0) return null;
+
     return new ScatterplotLayer({
       id: 'places-layer',
-      data: clusteredPlaces,
+      data: otherPlaces,
       pickable: true,
       opacity: 0.8,
       stroked: true,
@@ -360,9 +415,7 @@ export default function Map({
         if (cluster.isCluster) {
           return Math.min(8 + Math.log(cluster.count) * 4, 25);
         }
-
-        const centerPlace = realMyPlace;
-        return cluster.places[0]?.id === centerPlace.id ? 15 : 10;
+        return 10; // Standard size for other places
       },
       getFillColor: (cluster: ClusterPoint) => {
         if (cluster.isCluster) {
@@ -374,16 +427,12 @@ export default function Map({
             number
           ];
         }
-
-        const centerPlace = realMyPlace;
-        return cluster.places[0]?.id === centerPlace.id
-          ? (MAP_CONFIG.PLACE_COLORS.myPlace as [
-              number,
-              number,
-              number,
-              number
-            ])
-          : (MAP_CONFIG.PLACE_COLORS.other as [number, number, number, number]);
+        return MAP_CONFIG.PLACE_COLORS.other as [
+          number,
+          number,
+          number,
+          number
+        ];
       },
       getLineColor: [255, 255, 255, 255],
       onHover: (info: any) => {
@@ -510,9 +559,12 @@ export default function Map({
     filterState.dataType,
   ]);
 
-  const layers = [tradeAreasLayer, homeZipcodesLayer, placesLayer].filter(
-    Boolean
-  );
+  const layers = [
+    tradeAreasLayer,
+    homeZipcodesLayer,
+    placesLayer,
+    myPlaceLayer,
+  ].filter(Boolean);
 
   const onViewStateChange = useCallback(
     ({
