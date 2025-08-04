@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MongoClient } from 'mongodb';
 
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic';
+
 const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
@@ -11,9 +14,9 @@ if (!MONGODB_URI) {
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = request.nextUrl;
-    const placeIds = searchParams.get('placeIds');
-    const tradeAreaPercentages = searchParams.get('tradeAreaPercentages');
+    const url = new URL(request.url);
+    const placeIds = url.searchParams.get('placeIds');
+    const tradeAreaPercentages = url.searchParams.get('tradeAreaPercentages');
 
     if (!placeIds || !tradeAreaPercentages) {
       return NextResponse.json(
