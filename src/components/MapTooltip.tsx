@@ -48,21 +48,37 @@ export default function MapTooltip({
     validatedHomeZipcodesAvailable ?? place.isHomeZipcodesAvailable;
   return (
     <Paper
-      elevation={8}
+      elevation={12}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       sx={{
         position: 'absolute',
         left: x + 10,
-        top: y - 50, // Adjusted position to reduce gap
-        p: 2,
-        minWidth: 250,
-        maxWidth: 300,
+        top: y - 50,
+        p: 2.5,
+        minWidth: 280,
+        maxWidth: 320,
         zIndex: 1000,
         bgcolor: 'background.paper',
         border: '1px solid',
         borderColor: 'divider',
-        pointerEvents: 'auto', // Ensure mouse events work
+        pointerEvents: 'auto',
+        borderRadius: 2,
+        backdropFilter: 'blur(10px)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: '50%',
+          left: -8,
+          width: 0,
+          height: 0,
+          borderTop: '8px solid transparent',
+          borderBottom: '8px solid transparent',
+          borderRight: '8px solid',
+          borderRightColor: 'background.paper',
+          transform: 'translateY(-50%)',
+        },
       }}
     >
       {/* Place Information */}
@@ -99,7 +115,14 @@ export default function MapTooltip({
               size="small"
               onClick={isTradeAreaVisible ? onHideTradeArea : onShowTradeArea}
               disabled={isLoadingTradeArea}
-              sx={{ flex: 1 }}
+              sx={{
+                flex: 1,
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                },
+              }}
             >
               {isLoadingTradeArea ? (
                 <>
@@ -146,7 +169,14 @@ export default function MapTooltip({
                 isHomeZipcodesVisible ? onHideHomeZipcodes : onShowHomeZipcodes
               }
               disabled={isLoadingHomeZipcodes || isLoadingZipcodePolygons}
-              sx={{ flex: 1 }}
+              sx={{
+                flex: 1,
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                },
+              }}
             >
               {isLoadingHomeZipcodes || isLoadingZipcodePolygons ? (
                 <>

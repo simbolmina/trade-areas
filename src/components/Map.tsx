@@ -796,7 +796,7 @@ export default function Map({
         <ReactMapGL
           {...mapState.viewState}
           mapboxAccessToken={MAP_CONFIG.MAPBOX_ACCESS_TOKEN}
-          mapStyle="mapbox://styles/mapbox/light-v11"
+          mapStyle="mapbox://styles/mapbox/streets-v12"
           style={{ width: '100%', height: '100%' }}
         />
       </DeckGL>

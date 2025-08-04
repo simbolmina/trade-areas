@@ -50,10 +50,16 @@ export default function Home() {
 
   return (
     <NotificationProvider>
-      <Box sx={{ height: '100vh', display: 'flex' }}>
+      <Box
+        sx={{
+          height: '100vh',
+          display: 'flex',
+          bgcolor: 'background.default',
+        }}
+      >
         {/* Left Sidebar - Filters & Controls */}
         <Paper
-          elevation={3}
+          elevation={8}
           sx={{
             width: 320,
             height: '100%',
@@ -61,6 +67,8 @@ export default function Home() {
             borderRadius: 0,
             borderRight: 1,
             borderColor: 'divider',
+            boxShadow: '2px 0 12px rgba(0,0,0,0.1)',
+            zIndex: 1,
           }}
         >
           <LeftSidebar
@@ -71,7 +79,13 @@ export default function Home() {
         </Paper>
 
         {/* Main Map Area */}
-        <Box sx={{ flex: 1, position: 'relative' }}>
+        <Box
+          sx={{
+            flex: 1,
+            position: 'relative',
+            bgcolor: 'background.default',
+          }}
+        >
           <Map
             mapState={mapState}
             filterState={filterState}
@@ -82,7 +96,7 @@ export default function Home() {
 
         {/* Right Sidebar - Dynamic Legend */}
         <Paper
-          elevation={3}
+          elevation={8}
           sx={{
             width: 280,
             height: '100%',
@@ -90,6 +104,8 @@ export default function Home() {
             borderRadius: 0,
             borderLeft: 1,
             borderColor: 'divider',
+            boxShadow: '-2px 0 12px rgba(0,0,0,0.1)',
+            zIndex: 1,
           }}
         >
           <Legend

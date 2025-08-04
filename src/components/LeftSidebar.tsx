@@ -17,12 +17,35 @@ export default function LeftSidebar({
   availableIndustries,
 }: LeftSidebarProps) {
   return (
-    <Box sx={{ p: 2 }}>
-      <Typography variant="h5" gutterBottom sx={{ mb: 2 }}>
-        Filters & Controls
+    <Box
+      sx={{
+        p: 3,
+        height: '100%',
+        bgcolor: 'background.paper',
+      }}
+    >
+      <Typography
+        variant="h5"
+        gutterBottom
+        sx={{
+          mb: 3,
+          fontWeight: 600,
+          color: 'text.primary',
+          borderBottom: '2px solid',
+          borderColor: 'primary.main',
+          pb: 1,
+        }}
+      >
+        🎯 Filters & Controls
       </Typography>
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+        }}
+      >
         <PlaceAnalysis
           filterState={filterState}
           onFilterChange={onFilterChange}

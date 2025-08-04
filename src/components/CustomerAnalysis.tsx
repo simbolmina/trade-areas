@@ -113,9 +113,34 @@ export default function CustomerAnalysis({
               <Switch
                 checked={filterState.showCustomerData}
                 onChange={handleShowCustomerDataChange}
+                size="small"
+                sx={{
+                  '& .MuiSwitch-switchBase': {
+                    padding: '2px',
+                    '&.Mui-checked': {
+                      transform: 'translateX(20px)',
+                    },
+                  },
+                  '& .MuiSwitch-thumb': {
+                    width: '16px',
+                    height: '16px',
+                  },
+                  '& .MuiSwitch-track': {
+                    height: '20px',
+                    borderRadius: '10px',
+                    width: '40px',
+                  },
+                }}
               />
             }
             label="Show Customer Data"
+            sx={{
+              margin: 0,
+              '& .MuiFormControlLabel-label': {
+                fontSize: '0.875rem',
+                marginLeft: '8px',
+              },
+            }}
           />
         </Box>
       </AccordionDetails>

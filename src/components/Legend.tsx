@@ -25,7 +25,21 @@ const ColorBox = ({ color, label, size = 'medium' }: ColorBoxProps) => {
   const boxSize = size === 'small' ? 12 : 16;
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1.5,
+        mb: 1,
+        p: 0.5,
+        borderRadius: 1,
+        transition: 'all 0.2s ease-in-out',
+        '&:hover': {
+          bgcolor: 'action.hover',
+          transform: 'translateX(2px)',
+        },
+      }}
+    >
       <Box
         sx={{
           width: boxSize,
@@ -33,12 +47,18 @@ const ColorBox = ({ color, label, size = 'medium' }: ColorBoxProps) => {
           backgroundColor: `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${
             color[3] / 255
           })`,
-          border: '1px solid #ccc',
-          borderRadius: 0.5,
+          border: '2px solid',
+          borderColor: 'divider',
+          borderRadius: 1,
           flexShrink: 0,
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
         }}
       />
-      <Typography variant="caption" color="text.secondary">
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{ fontWeight: 500 }}
+      >
         {label}
       </Typography>
     </Box>
@@ -55,15 +75,49 @@ export default function Legend({
   const showCustomerDataLegend = filterState.showCustomerData;
 
   return (
-    <Box sx={{ p: 2 }}>
-      <Typography variant="h5" gutterBottom sx={{ mb: 2 }}>
-        Legend
+    <Box
+      sx={{
+        p: 3,
+        height: '100%',
+        bgcolor: 'background.paper',
+      }}
+    >
+      <Typography
+        variant="h5"
+        gutterBottom
+        sx={{
+          mb: 3,
+          fontWeight: 600,
+          color: 'text.primary',
+          borderBottom: '2px solid',
+          borderColor: 'primary.main',
+          pb: 1,
+        }}
+      >
+        📊 Legend
       </Typography>
 
       {/* Places Legend */}
       {showPlacesLegend && (
-        <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
-          <Typography variant="h6" gutterBottom>
+        <Paper
+          elevation={2}
+          sx={{
+            p: 2.5,
+            mb: 2.5,
+            borderRadius: 2,
+            border: '1px solid',
+            borderColor: 'divider',
+          }}
+        >
+          <Typography
+            variant="h6"
+            gutterBottom
+            sx={{
+              fontWeight: 600,
+              color: 'text.primary',
+              mb: 2,
+            }}
+          >
             Places {placesCount !== undefined && `(${placesCount})`}
           </Typography>
           <ColorBox color={MAP_CONFIG.PLACE_COLORS.myPlace} label="My Place" />
@@ -86,8 +140,24 @@ export default function Legend({
 
       {/* Customer Data Legend */}
       {showCustomerDataLegend && (
-        <Paper elevation={1} sx={{ p: 2 }}>
-          <Typography variant="h6" gutterBottom>
+        <Paper
+          elevation={2}
+          sx={{
+            p: 2.5,
+            borderRadius: 2,
+            border: '1px solid',
+            borderColor: 'divider',
+          }}
+        >
+          <Typography
+            variant="h6"
+            gutterBottom
+            sx={{
+              fontWeight: 600,
+              color: 'text.primary',
+              mb: 2,
+            }}
+          >
             Customer Data
           </Typography>
 
