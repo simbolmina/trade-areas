@@ -126,15 +126,6 @@ export default function Legend({
             label="Other Places"
           />
           <ColorBox color={[255, 165, 0, 200]} label="Clusters" />
-          {clusteredCount !== undefined && clusteredCount > 0 && (
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ mt: 1, display: 'block' }}
-            >
-              Showing {clusteredCount} groups/places for performance
-            </Typography>
-          )}
         </Paper>
       )}
 
@@ -245,7 +236,7 @@ export default function Legend({
                 sx={{ mt: 1, display: 'block' }}
               >
                 {visibleHomeZipcodes
-                  ? `Based on ${visibleHomeZipcodes.locations.length} locations`
+                  ? `Showing ${visibleHomeZipcodes.locations.length} zipcode areas`
                   : 'Higher percentiles = more customers'}
               </Typography>
             </Box>

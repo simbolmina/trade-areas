@@ -48,6 +48,7 @@ export default function Map({
   const [tooltipTimeout, setTooltipTimeout] = useState<NodeJS.Timeout | null>(
     null
   );
+  const [isHoveringPlace, setIsHoveringPlace] = useState(false);
 
   const showTooltip = useCallback(
     (place: Place, x: number, y: number) => {
@@ -149,6 +150,40 @@ export default function Map({
   // Flag to track if this is the initial load
   const [hasInitialized, setHasInitialized] = useState(false);
 
+  // Generate unique colors for places with trade areas
+  const placeColors = useMemo(() => {
+    const colors: { [placeId: string]: [number, number, number, number] } = {};
+    const colorPalette: [number, number, number, number][] = [
+      [255, 0, 0, 255], // Red
+      [0, 255, 0, 255], // Green
+      [0, 0, 255, 255], // Blue
+      [255, 255, 0, 255], // Yellow
+      [255, 0, 255, 255], // Magenta
+      [0, 255, 255, 255], // Cyan
+      [255, 165, 0, 255], // Orange
+      [128, 0, 128, 255], // Purple
+      [255, 192, 203, 255], // Pink
+      [0, 128, 0, 255], // Dark Green
+      [128, 0, 0, 255], // Dark Red
+      [0, 0, 128, 255], // Dark Blue
+    ];
+
+    // Get unique place IDs that have trade areas
+    const placeIdsWithTradeAreas = new Set(
+      visibleTradeAreas.map((ta) => ta.pid)
+    );
+
+    let colorIndex = 0;
+    placeIdsWithTradeAreas.forEach((placeId) => {
+      if (!colors[placeId]) {
+        colors[placeId] = colorPalette[colorIndex % colorPalette.length];
+        colorIndex++;
+      }
+    });
+
+    return colors;
+  }, [visibleTradeAreas]);
+
   useEffect(() => {
     if (filteredPlaces.length === 0) {
       setValidatedAvailability({});
@@ -182,17 +217,20 @@ export default function Map({
 
   useEffect(() => {
     if (filterState.dataType === 'homeZipcodes') {
+      // Store the trade areas that were visible before clearing them
+      const previouslyVisibleTradeAreas = [...visibleTradeAreas];
+
       if (visibleTradeAreas.length > 0) {
         setVisibleTradeAreas([]);
       }
 
-      // Determine which place's home zipcodes to show based on visible trade areas
+      // Determine which place's home zipcodes to show based on previously visible trade areas
       const visibleTradeAreaPlaces = new Set(
-        visibleTradeAreas.map((ta) => ta.pid)
+        previouslyVisibleTradeAreas.map((ta) => ta.pid)
       );
 
       if (visibleTradeAreaPlaces.size === 1) {
-        // If exactly one trade area is visible, show home zipcodes for that place
+        // If exactly one trade area was visible, show home zipcodes for that place
         const placeId = Array.from(visibleTradeAreaPlaces)[0];
         const place = filteredPlaces.find((p) => p.id === placeId);
 
@@ -218,54 +256,16 @@ export default function Map({
 
           showPlaceHomeZipcodes();
         }
-      } else if (visibleTradeAreaPlaces.size === 0) {
-        // If no trade areas are visible, only auto-load "My Place" home zipcodes
-        // and we're not in the middle of a manual loading operation
-        // and we haven't manually hidden them
-        // and this is the initial load (not a data type switch)
-        if (
-          !visibleHomeZipcodes &&
-          !Object.values(loadingStates).some((state) => state.homeZipcodes) &&
-          !preventAutoLoad &&
-          !hasInitialized
-        ) {
-          const myPlaceId = realMyPlace.id;
-          const myPlaceData = realMyPlace;
+      } else if (visibleTradeAreaPlaces.size > 1) {
+        // If multiple trade areas were visible, show "My Place" home zipcodes
+        const myPlace = filteredPlaces.find((p) => p.id === realMyPlace.id);
 
-          if (myPlaceData.isHomeZipcodesAvailable) {
-            const showMyPlaceHomeZipcodes = async () => {
-              try {
-                const homeZipcodes = await getRealHomeZipcodesForPlace(
-                  myPlaceId
-                );
-
-                if (homeZipcodes) {
-                  setVisibleHomeZipcodes(homeZipcodes);
-                  onMapStateChange({
-                    visibleHomeZipcodes: homeZipcodes,
-                  });
-                  setHasInitialized(true);
-                }
-              } catch {
-                showNotification(
-                  'Error auto-loading "My Place" home zipcodes',
-                  'error'
-                );
-              }
-            };
-
-            showMyPlaceHomeZipcodes();
-          }
-        }
-      } else {
-        // If multiple trade areas are visible, show "My Place" home zipcodes
-        const myPlaceId = realMyPlace.id;
-        const myPlaceData = realMyPlace;
-
-        if (myPlaceData.isHomeZipcodesAvailable) {
+        if (myPlace && myPlace.isHomeZipcodesAvailable) {
           const showMyPlaceHomeZipcodes = async () => {
             try {
-              const homeZipcodes = await getRealHomeZipcodesForPlace(myPlaceId);
+              const homeZipcodes = await getRealHomeZipcodesForPlace(
+                realMyPlace.id
+              );
 
               if (homeZipcodes) {
                 setVisibleHomeZipcodes(homeZipcodes);
@@ -276,7 +276,7 @@ export default function Map({
               }
             } catch {
               showNotification(
-                'Error auto-loading "My Place" home zipcodes',
+                `Error loading home zipcodes for ${myPlace.name}`,
                 'error'
               );
             }
@@ -285,6 +285,7 @@ export default function Map({
           showMyPlaceHomeZipcodes();
         }
       }
+      // If no trade areas were visible, don't auto-load anything - user must manually click
     } else if (filterState.dataType === 'tradeArea') {
       if (visibleHomeZipcodes) {
         setVisibleHomeZipcodes(null);
@@ -302,6 +303,7 @@ export default function Map({
     onMapStateChange,
     showNotification,
     filteredPlaces,
+    realMyPlace.id,
   ]);
 
   useEffect(() => {
@@ -346,6 +348,11 @@ export default function Map({
     const myPlace = filteredPlaces.find((place) => place.id === realMyPlace.id);
     if (!myPlace) return null;
 
+    // Check if My Place has trade areas visible
+    const hasTradeAreas = visibleTradeAreas.some(
+      (ta) => ta.pid === realMyPlace.id
+    );
+
     return new ScatterplotLayer({
       id: 'my-place-layer',
       data: [myPlace],
@@ -354,20 +361,24 @@ export default function Map({
       stroked: true,
       filled: true,
       radiusScale: 1,
-      radiusMinPixels: 20,
-      radiusMaxPixels: 40,
-      lineWidthMinPixels: 3,
+      radiusMinPixels: hasTradeAreas ? 40 : 30, // Even larger when trade areas are visible
+      radiusMaxPixels: hasTradeAreas ? 55 : 45,
+      lineWidthMinPixels: 5, // Thicker border
       getPosition: (place: Place) => [place.longitude, place.latitude],
-      getRadius: () => 30, // Always large and visible
+      getRadius: () => (hasTradeAreas ? 45 : 35), // Even larger when trade areas are visible
       getFillColor: () =>
         MAP_CONFIG.PLACE_COLORS.myPlace as [number, number, number, number],
-      getLineColor: [255, 255, 255, 255], // White border
-      getLineWidth: 3,
+      getLineColor: hasTradeAreas
+        ? placeColors[realMyPlace.id] || [255, 255, 0, 255]
+        : [255, 255, 255, 255], // Use assigned color or yellow
+      getLineWidth: hasTradeAreas ? 6 : 4, // Even thicker border when trade areas visible
       onHover: (info: any) => {
         if (info.object && info.x !== undefined && info.y !== undefined) {
           showTooltip(info.object, info.x, info.y);
+          setIsHoveringPlace(true);
         } else {
           hideTooltipWithDelay();
+          setIsHoveringPlace(false);
         }
       },
       onClick: (info: any) => {
@@ -379,6 +390,8 @@ export default function Map({
   }, [
     filterState.showPlaces,
     filteredPlaces,
+    visibleTradeAreas,
+    placeColors,
     onMapStateChange,
     showTooltip,
     hideTooltipWithDelay,
@@ -400,22 +413,27 @@ export default function Map({
       id: 'places-layer',
       data: otherPlaces,
       pickable: true,
-      opacity: 0.8,
+      opacity: 0.9, // Slightly more opaque
       stroked: true,
       filled: true,
       radiusScale: 1,
-      radiusMinPixels: 8,
-      radiusMaxPixels: 25,
-      lineWidthMinPixels: 2,
+      radiusMinPixels: 12, // Bigger base size
+      radiusMaxPixels: 35, // Bigger max size
+      lineWidthMinPixels: 4, // Thicker border
       getPosition: (cluster: ClusterPoint) => [
         cluster.longitude,
         cluster.latitude,
       ],
       getRadius: (cluster: ClusterPoint) => {
         if (cluster.isCluster) {
-          return Math.min(8 + Math.log(cluster.count) * 4, 25);
+          return Math.min(12 + Math.log(cluster.count) * 4, 35);
         }
-        return 10; // Standard size for other places
+        // Check if this place has trade areas visible
+        const place = cluster.places[0];
+        const hasTradeAreas = place
+          ? visibleTradeAreas.some((ta) => ta.pid === place.id)
+          : false;
+        return hasTradeAreas ? 25 : 15; // Even larger when trade areas are visible
       },
       getFillColor: (cluster: ClusterPoint) => {
         if (cluster.isCluster) {
@@ -434,17 +452,43 @@ export default function Map({
           number
         ];
       },
-      getLineColor: [255, 255, 255, 255],
+      getLineColor: (cluster: ClusterPoint) => {
+        if (cluster.isCluster) {
+          return [255, 255, 255, 255];
+        }
+        // Check if this place has trade areas visible
+        const place = cluster.places[0];
+        const hasTradeAreas = place
+          ? visibleTradeAreas.some((ta) => ta.pid === place.id)
+          : false;
+        return hasTradeAreas
+          ? placeColors[place.id] || [255, 0, 0, 255]
+          : [255, 255, 255, 255]; // Use assigned color or red
+      },
+      getLineWidth: (cluster: ClusterPoint) => {
+        if (cluster.isCluster) {
+          return 3;
+        }
+        // Check if this place has trade areas visible
+        const place = cluster.places[0];
+        const hasTradeAreas = place
+          ? visibleTradeAreas.some((ta) => ta.pid === place.id)
+          : false;
+        return hasTradeAreas ? 5 : 3; // Even thicker border when trade areas visible
+      },
       onHover: (info: any) => {
         if (info.object && info.x !== undefined && info.y !== undefined) {
           const cluster = info.object as ClusterPoint;
           if (!cluster.isCluster && cluster.places[0]) {
             showTooltip(cluster.places[0], info.x, info.y);
+            setIsHoveringPlace(true);
           } else {
             hideTooltipWithDelay();
+            setIsHoveringPlace(false);
           }
         } else {
           hideTooltipWithDelay();
+          setIsHoveringPlace(false);
         }
       },
       onClick: (info: any) => {
@@ -457,6 +501,8 @@ export default function Map({
   }, [
     clusteredPlaces,
     filterState.showPlaces,
+    visibleTradeAreas,
+    placeColors,
     onMapStateChange,
     showTooltip,
     hideTooltipWithDelay,
@@ -493,7 +539,7 @@ export default function Map({
         stroked: true,
         filled: true,
         wireframe: false,
-        lineWidthMinPixels: 1,
+        lineWidthMinPixels: 2, // Thicker border for better visibility
         getPolygon: (tradeArea: TradeArea) => tradeArea.polygon.coordinates[0],
         getFillColor: (tradeArea: TradeArea) => {
           const color = MAP_CONFIG.TRADE_AREA_COLORS[
@@ -501,13 +547,21 @@ export default function Map({
           ] as [number, number, number, number];
           return [color[0], color[1], color[2], 120]; // More transparent
         },
-        getLineColor: [255, 255, 255, 200],
-        getLineWidth: 1,
+        getLineColor: (tradeArea: TradeArea) => {
+          const placeColor = placeColors[tradeArea.pid];
+          return placeColor || [255, 255, 255, 255]; // White if no color assigned
+        },
+        getLineWidth: 2, // Thicker border
       });
     } catch {
       return null;
     }
-  }, [visibleTradeAreas, filterState.showCustomerData, filterState.dataType]);
+  }, [
+    visibleTradeAreas,
+    filterState.showCustomerData,
+    filterState.dataType,
+    placeColors,
+  ]);
 
   const homeZipcodesLayer = useMemo(() => {
     if (
@@ -836,20 +890,38 @@ export default function Map({
   }
 
   return (
-    <Box sx={{ width: '100%', height: '100%', position: 'relative' }}>
+    <Box
+      sx={{
+        width: '100%',
+        height: '100%',
+        position: 'relative',
+        cursor: isHoveringPlace ? 'pointer' : 'grab',
+        '& *': {
+          cursor: isHoveringPlace ? 'pointer' : 'grab',
+        },
+      }}
+    >
       <DeckGL
         views={new MapView({ repeat: true })}
         viewState={mapState.viewState}
         controller={true}
         layers={layers}
         onViewStateChange={onViewStateChange}
-        style={{ width: '100%', height: '100%' }}
+        style={{
+          width: '100%',
+          height: '100%',
+          cursor: isHoveringPlace ? 'pointer' : 'grab',
+        }}
       >
         <ReactMapGL
           {...mapState.viewState}
           mapboxAccessToken={MAP_CONFIG.MAPBOX_ACCESS_TOKEN}
           mapStyle="mapbox://styles/mapbox/streets-v12"
-          style={{ width: '100%', height: '100%' }}
+          style={{
+            width: '100%',
+            height: '100%',
+            cursor: isHoveringPlace ? 'pointer' : 'grab',
+          }}
         />
       </DeckGL>
 
@@ -889,6 +961,7 @@ export default function Map({
             loadingStates[hoveredPlace.place.id]?.homeZipcodes || false
           }
           isLoadingZipcodePolygons={isLoadingZipcodePolygons}
+          dataType={filterState.dataType}
         />
       )}
     </Box>

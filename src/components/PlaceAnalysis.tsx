@@ -44,6 +44,13 @@ export default function PlaceAnalysis({
     });
   };
 
+  const handleIndustryRemove = (industryToRemove: string) => {
+    const newIndustries = filterState.industries.filter(
+      (industry) => industry !== industryToRemove
+    );
+    onFilterChange({ industries: newIndustries });
+  };
+
   const handleShowPlacesChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -75,13 +82,14 @@ export default function PlaceAnalysis({
               value={filterState.industries}
               onChange={handleIndustryChange}
               input={<OutlinedInput label="Industry" />}
-              renderValue={(selected) => (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                  {selected.map((value) => (
-                    <Chip key={value} label={value} size="small" />
-                  ))}
-                </Box>
-              )}
+              renderValue={() => {
+                if (filterState.industries.length === 0) {
+                  return null;
+                }
+                return `${filterState.industries.length} industry${
+                  filterState.industries.length === 1 ? '' : 'ies'
+                } selected`;
+              }}
             >
               {availableIndustries.map((industry) => (
                 <MenuItem key={industry} value={industry}>
@@ -90,6 +98,27 @@ export default function PlaceAnalysis({
               ))}
             </Select>
           </FormControl>
+
+          {/* Selected Industries Display */}
+          {filterState.industries.length > 0 && (
+            <Box>
+              <Typography variant="subtitle2" gutterBottom>
+                Selected Industries:
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                {filterState.industries.map((industry) => (
+                  <Chip
+                    key={industry}
+                    label={industry}
+                    size="small"
+                    onDelete={() => handleIndustryRemove(industry)}
+                    color="primary"
+                    variant="outlined"
+                  />
+                ))}
+              </Box>
+            </Box>
+          )}
 
           {/* Show/Hide Places Toggle */}
           <FormControlLabel
