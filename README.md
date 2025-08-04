@@ -51,6 +51,9 @@ A React-based interactive map application for visualizing business locations and
 - **Business Rules**: Multiple trade areas, single home zipcodes
 - **Notification System**: Global notification system for errors and warnings
 - **Responsive Design**: Works across different screen sizes
+- **Smart Auto-Loading**: Home zipcodes only auto-load on initial page load, not on data type switches
+- **Manual Operation Respect**: Manual hide operations prevent auto-reloading for 5 seconds
+- **Proper State Management**: Clear distinction between manual and automatic operations
 
 ## 📊 Data Structure
 
@@ -104,12 +107,15 @@ type HomeZipcodes = {
 - **Home Zipcodes**: Only one place's data visible at a time (replaces previous)
 - **Data Type Switching**: When switching to Home Zipcodes, only "My Place" remains visible
 - **Individual Control**: Customer Data toggle enables tooltip buttons, doesn't auto-show data
+- **Auto-Loading Logic**: Home zipcodes only auto-load on initial page load, not on data type switches
+- **Manual Hide Respect**: Manual hide operations prevent auto-reloading for 5 seconds
 
 ### Validation & Error Handling
 
 - **Data Availability**: Check actual data vs place flags for accurate button states
 - **User Feedback**: Clear notifications for errors and warnings
 - **Graceful Degradation**: Handle missing or malformed data gracefully
+- **State Management**: Proper flags to distinguish between manual and automatic operations
 
 ## 🎯 Project Status: **100% COMPLETE**
 
@@ -121,6 +127,9 @@ All core business requirements are implemented and working perfectly!
 - ✅ **Duplicate Prevention**: Robust system to prevent duplicate notifications
 - ✅ **Streamlined UX**: Only important notifications shown (errors, warnings)
 - ✅ **Data Quality**: Enhanced validation and error handling
+- ✅ **Home Zipcodes Auto-Reloading Fix**: Fixed issue where home zipcodes would reload after manual hide
+- ✅ **Smart State Management**: Added flags to distinguish between manual and automatic operations
+- ✅ **Enhanced User Experience**: Proper loading states and button feedback for all operations
 
 ## 🚀 Getting Started
 

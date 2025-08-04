@@ -186,16 +186,79 @@ export default function Map({
         setVisibleTradeAreas([]);
       }
 
-      // Only auto-load "My Place" home zipcodes if no home zipcodes are currently visible
-      // and we're not in the middle of a manual loading operation
-      // and we haven't manually hidden them
-      // and this is the initial load (not a data type switch)
-      if (
-        !visibleHomeZipcodes &&
-        !Object.values(loadingStates).some((state) => state.homeZipcodes) &&
-        !preventAutoLoad &&
-        !hasInitialized
-      ) {
+      // Determine which place's home zipcodes to show based on visible trade areas
+      const visibleTradeAreaPlaces = new Set(
+        visibleTradeAreas.map((ta) => ta.pid)
+      );
+
+      if (visibleTradeAreaPlaces.size === 1) {
+        // If exactly one trade area is visible, show home zipcodes for that place
+        const placeId = Array.from(visibleTradeAreaPlaces)[0];
+        const place = filteredPlaces.find((p) => p.id === placeId);
+
+        if (place && place.isHomeZipcodesAvailable) {
+          const showPlaceHomeZipcodes = async () => {
+            try {
+              const homeZipcodes = await getRealHomeZipcodesForPlace(placeId);
+
+              if (homeZipcodes) {
+                setVisibleHomeZipcodes(homeZipcodes);
+                onMapStateChange({
+                  visibleHomeZipcodes: homeZipcodes,
+                });
+                setHasInitialized(true);
+              }
+            } catch {
+              showNotification(
+                `Error loading home zipcodes for ${place.name}`,
+                'error'
+              );
+            }
+          };
+
+          showPlaceHomeZipcodes();
+        }
+      } else if (visibleTradeAreaPlaces.size === 0) {
+        // If no trade areas are visible, only auto-load "My Place" home zipcodes
+        // and we're not in the middle of a manual loading operation
+        // and we haven't manually hidden them
+        // and this is the initial load (not a data type switch)
+        if (
+          !visibleHomeZipcodes &&
+          !Object.values(loadingStates).some((state) => state.homeZipcodes) &&
+          !preventAutoLoad &&
+          !hasInitialized
+        ) {
+          const myPlaceId = realMyPlace.id;
+          const myPlaceData = realMyPlace;
+
+          if (myPlaceData.isHomeZipcodesAvailable) {
+            const showMyPlaceHomeZipcodes = async () => {
+              try {
+                const homeZipcodes = await getRealHomeZipcodesForPlace(
+                  myPlaceId
+                );
+
+                if (homeZipcodes) {
+                  setVisibleHomeZipcodes(homeZipcodes);
+                  onMapStateChange({
+                    visibleHomeZipcodes: homeZipcodes,
+                  });
+                  setHasInitialized(true);
+                }
+              } catch {
+                showNotification(
+                  'Error auto-loading "My Place" home zipcodes',
+                  'error'
+                );
+              }
+            };
+
+            showMyPlaceHomeZipcodes();
+          }
+        }
+      } else {
+        // If multiple trade areas are visible, show "My Place" home zipcodes
         const myPlaceId = realMyPlace.id;
         const myPlaceData = realMyPlace;
 
@@ -238,6 +301,7 @@ export default function Map({
     hasInitialized,
     onMapStateChange,
     showNotification,
+    filteredPlaces,
   ]);
 
   useEffect(() => {
