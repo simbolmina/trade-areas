@@ -30,11 +30,11 @@ export default function CustomerAnalysis({
 }: CustomerAnalysisProps) {
   const handleDataTypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value as 'tradeArea' | 'homeZipcodes';
+
+    // Only change data type, don't trigger auto-loading by clearing other states
     onFilterChange({
       dataType: value,
       selectedTradeAreas: value === 'tradeArea' ? [30, 50, 70] : [],
-      selectedPlaceId:
-        value === 'homeZipcodes' ? null : filterState.selectedPlaceId,
     });
   };
 

@@ -1,5 +1,9 @@
 import { Place, TradeArea, HomeZipcodes, Zipcode } from '@/types';
-import { tradeAreasCache, homeZipcodesCache } from '@/utils/cache';
+import {
+  tradeAreasCache,
+  homeZipcodesCache,
+  zipcodesCache,
+} from '@/utils/cache';
 
 // Import the real data files
 import myPlaceData from './my_place.json';
@@ -223,7 +227,16 @@ const loadZipcodes = async (): Promise<Zipcode[]> => {
 
 // Helper function to get zipcode polygons
 export const getRealZipcodes = async (): Promise<Zipcode[]> => {
-  return await loadZipcodes();
+  const cacheKey = 'all_zipcodes';
+  const cached = zipcodesCache.get(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
+  const zipcodes = await loadZipcodes();
+  zipcodesCache.set(cacheKey, zipcodes);
+  return zipcodes;
 };
 
 // Helper function to get specific zipcode by ID

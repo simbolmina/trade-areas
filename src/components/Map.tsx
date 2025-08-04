@@ -143,6 +143,12 @@ export default function Map({
   const [isLoadingZipcodePolygons, setIsLoadingZipcodePolygons] =
     useState(false);
 
+  // Flag to prevent auto-loading after manual hide
+  const [preventAutoLoad, setPreventAutoLoad] = useState(false);
+
+  // Flag to track if this is the initial load
+  const [hasInitialized, setHasInitialized] = useState(false);
+
   useEffect(() => {
     if (filteredPlaces.length === 0) {
       setValidatedAvailability({});
@@ -180,7 +186,16 @@ export default function Map({
         setVisibleTradeAreas([]);
       }
 
-      if (!visibleHomeZipcodes) {
+      // Only auto-load "My Place" home zipcodes if no home zipcodes are currently visible
+      // and we're not in the middle of a manual loading operation
+      // and we haven't manually hidden them
+      // and this is the initial load (not a data type switch)
+      if (
+        !visibleHomeZipcodes &&
+        !Object.values(loadingStates).some((state) => state.homeZipcodes) &&
+        !preventAutoLoad &&
+        !hasInitialized
+      ) {
         const myPlaceId = realMyPlace.id;
         const myPlaceData = realMyPlace;
 
@@ -194,6 +209,7 @@ export default function Map({
                 onMapStateChange({
                   visibleHomeZipcodes: homeZipcodes,
                 });
+                setHasInitialized(true);
               }
             } catch {
               showNotification(
@@ -217,6 +233,9 @@ export default function Map({
     filterState.dataType,
     visibleTradeAreas.length,
     visibleHomeZipcodes,
+    loadingStates,
+    preventAutoLoad,
+    hasInitialized,
     onMapStateChange,
     showNotification,
   ]);
@@ -537,6 +556,15 @@ export default function Map({
         return;
       }
 
+      // Check if home zipcodes are already visible for this place
+      if (visibleHomeZipcodes && visibleHomeZipcodes.pid === placeId) {
+        showNotification(
+          'Home zipcodes are already visible for this place',
+          'info'
+        );
+        return;
+      }
+
       // If Trade Areas are currently active, automatically switch to Home Zipcodes
       if (filterState.dataType === 'tradeArea') {
         // Clear all visible trade areas first
@@ -547,6 +575,9 @@ export default function Map({
         onFilterChange({
           dataType: 'homeZipcodes',
         });
+
+        // Reset prevent auto-load flag when switching modes
+        setPreventAutoLoad(false);
 
         showNotification(
           'Switched to Home Zipcodes mode and cleared trade areas',
@@ -569,6 +600,10 @@ export default function Map({
           onMapStateChange({
             visibleHomeZipcodes: homeZipcodes,
           });
+
+          // Reset prevent auto-load flag when manually showing
+          setPreventAutoLoad(false);
+          setHasInitialized(true);
         } else {
           showNotification(
             'No home zipcodes data available for this place',
@@ -586,6 +621,7 @@ export default function Map({
       }
     },
     [
+      visibleHomeZipcodes,
       onMapStateChange,
       onFilterChange,
       filterState.showCustomerData,
@@ -596,19 +632,29 @@ export default function Map({
 
   const handleHideHomeZipcodes = useCallback(
     (placeId: string) => {
-      if (visibleHomeZipcodes && visibleHomeZipcodes.pid === placeId) {
-        setVisibleHomeZipcodes(null);
-        setVisibleHomeZipcodesPolygons([]);
+      // Always clear home zipcodes regardless of which place they belong to
+      // This prevents the auto-loading from interfering with manual hide operations
+      setVisibleHomeZipcodes(null);
+      setVisibleHomeZipcodesPolygons([]);
+      onMapStateChange({ visibleHomeZipcodes: null });
 
-        onMapStateChange({ visibleHomeZipcodes: null });
-      } else {
-        showNotification(
-          'No home zipcodes currently visible for this place',
-          'info'
-        );
-      }
+      // Clear any loading states for this place
+      setLoadingStates((prev) => ({
+        ...prev,
+        [placeId]: { ...prev[placeId], homeZipcodes: false },
+      }));
+
+      // Prevent auto-loading after manual hide
+      setPreventAutoLoad(true);
+
+      // Reset the flag after 5 seconds to allow future auto-loading
+      setTimeout(() => {
+        setPreventAutoLoad(false);
+      }, 5000);
+
+      showNotification('Home zipcodes hidden', 'info');
     },
-    [onMapStateChange, visibleHomeZipcodes, showNotification]
+    [onMapStateChange, showNotification]
   );
 
   if (!hasMapboxToken) {
