@@ -1,0 +1,13 @@
+{
+    "id": "c660833d-77f0-4bfa-b8f9-4ac38f43ef6a",
+    "name": "Starbucks",
+    "street_address": "7055 Austin Bluffs Pkwy",
+    "city": "Colorado Springs",
+    "state": "CO",
+    "logo": null,
+    "longitude": -104.73874,
+    "latitude": 38.932625,
+    "industry": "Snack and Nonalcoholic Beverage Bars",
+    "isTradeAreaAvailable": true,
+    "isHomeZipcodesAvailable": true
+  }
